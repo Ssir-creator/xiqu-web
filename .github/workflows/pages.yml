@@ -1,0 +1,48 @@
+name: Publish Xijing website
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: xijing-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out website
+        uses: actions/checkout@v4
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Prepare single-file website
+        run: |
+          mkdir -p _site
+          cp index.html _site/index.html
+          cp .nojekyll _site/.nojekyll
+          python3 - <<'PY'
+          from pathlib import Path
+          content = Path('_site/index.html').read_text(encoding='utf-8')
+          assert '<meta charset="UTF-8">' in content
+          assert 'FUNCTION_INTROS' in content
+          assert all(f'id="{mode}"' in content for mode in ('guide', 'show', 'story', 'interact'))
+          PY
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publish website
+        id: deployment
+        uses: actions/deploy-pages@v4
