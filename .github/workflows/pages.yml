@@ -36,8 +36,8 @@ jobs:
           from pathlib import Path
           content = Path('_site/index.html').read_text(encoding='utf-8')
           assert '<meta charset="UTF-8">' in content
-          assert 'FUNCTION_INTROS' in content
-          assert all(f'id="{mode}"' in content for mode in ('guide', 'show', 'story', 'interact'))
+          assert 'SCRIPTS' in content
+          assert all(f'id="{mode}"' in content for mode in ('guide', 'show', 'interact'))
           PY
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
