@@ -1,0 +1,47 @@
+name: Generate voiced website demo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - video-narration.txt
+      - .github/workflows/generate-voiced-video.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Mandarin voice generator
+        run: python3 -m pip install edge-tts
+      - name: Generate Mandarin narration
+        run: |
+          mkdir -p voice-work
+          python3 - <<'PY'
+          from pathlib import Path
+          import asyncio, edge_tts
+          lines = [line.strip() for line in Path('video-narration.txt').read_text(encoding='utf-8').splitlines() if line.strip()]
+          async def main():
+              for index, text in enumerate(lines, 1):
+                  await edge_tts.Communicate(text, 'zh-CN-XiaoxiaoNeural', rate='-8%', pitch='-2Hz').save(f'voice-work/{index}.mp3')
+          asyncio.run(main())
+          PY
+      - name: Mix narration into the published video
+        run: |
+          ffmpeg -y -loglevel error -i xijing-website-demo.mp4 \
+            -i voice-work/1.mp3 -i voice-work/2.mp3 -i voice-work/3.mp3 \
+            -i voice-work/4.mp3 -i voice-work/5.mp3 -i voice-work/6.mp3 \
+            -filter_complex "[0:a]volume=0.20[bg];[1:a]apad,atrim=0:22[a1];[2:a]apad,atrim=0:21[a2];[3:a]apad,atrim=0:23[a3];[4:a]apad,atrim=0:29[a4];[5:a]apad,atrim=0:25[a5];[6:a]apad,atrim=0:40.24[a6];[a1][a2][a3][a4][a5][a6]concat=n=6:v=0:a=1[narr];[bg][narr]amix=inputs=2:duration=first:dropout_transition=0,loudnorm=I=-16:TP=-1.5:LRA=9[out]" \
+            -map 0:v:0 -map "[out]" -c:v copy -c:a aac -b:a 192k -movflags +faststart voiced.mp4
+          mv voiced.mp4 xijing-website-demo.mp4
+      - name: Commit voiced video
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add xijing-website-demo.mp4
+          git commit -m "Add Mandarin narration to website demo video"
+          git push
