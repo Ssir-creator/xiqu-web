@@ -6,6 +6,8 @@
 
 在线地址：https://ssir-creator.github.io/xiqu-web/
 
+有声功能演示：https://ssir-creator.github.io/xiqu-web/xijing-website-demo.mp4
+
 推送到 main 后，GitHub Actions 自动发布，更新后刷新同一网址即可。若有缓存，用 Ctrl+F5 刷新。
 
 ## 单文件与离线
