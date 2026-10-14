@@ -8,6 +8,8 @@
 
 有声功能演示：https://ssir-creator.github.io/xiqu-web/xijing-website-demo.mp4
 
+演示视频采用完整句旁白，并在功能切换处设置章节过场。
+
 推送到 main 后，GitHub Actions 自动发布，更新后刷新同一网址即可。若有缓存，用 Ctrl+F5 刷新。
 
 ## 单文件与离线
